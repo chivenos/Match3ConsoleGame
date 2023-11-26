@@ -5,9 +5,10 @@ import java.util.Arrays;
 public class Match3{
 		final static Scanner sc = new Scanner(System.in);
 		final static Random rand = new Random();
-		final static char[] colors = new char[]{'R', 'G', 'B'};
+		final static char[] colors = new char[]{'R', 'G', 'B', ' '};
 		final static String[] colorNames = new String[]{"red", "green", "blue"};
-		final static int colorCount = colors.length;
+		final static int colorCount = colors.length - 1;
+		final static int emptyIndex = colorCount;
 		final static int scoreMultiplier = 5; //effects the game difficulty
 		
 		static int[][] board;
@@ -157,7 +158,7 @@ public class Match3{
 					break;
 				}
 				
-				//PrintBoard(); //FOR DEBUGGING PURPOSES!!!!
+				//PrintBoard(); //DEBUGGING!!!!
 				PrintScore();
 				GenerateNewCells(); 	//generates new cells to the just blanked cells
 				ReShuffleIfNoMatch();	//reshuffle the board if there is no possible match
@@ -170,16 +171,13 @@ public class Match3{
 	
 	private static int CheckIfGameEnded(){ //0 not ended, 1 lost, 2 won
 		if(gameMode == 0){
-			if(moveCount <= 0) //lost
-				return 1;
-				
 			if(CalculateTotalScore() >= 200)
 				return 2;
-		}
-		else if(gameMode == 1){
+			
 			if(moveCount <= 0) //lost
 				return 1;
-			
+		}
+		else if(gameMode == 1){
 			int count = 0;
 			for(int i : scores)
 				if(i >= 100)
@@ -187,6 +185,9 @@ public class Match3{
 				
 			if(count == scores.length)
 				return 2;
+			
+			if(moveCount <= 0) //lost
+				return 1;
 		}
 		
 		return 0;
@@ -250,18 +251,21 @@ public class Match3{
 			
 		for(int i = boardVertical-1; i>=0; i--){
 			for(int j = blankColumns[0]; j<=blankColumns[1]; j++){ //loop through the only empty columns to save time
-				if(board[i][j] == -1){ //if the cell is an empty one
+				if(board[i][j] == emptyIndex){ //if the cell is an empty one
 					colorLengthBuffer = 0;
 					
-					if(boardVertical > i + 2 && board[i+2][j] == board[i+1][j])//if up 2 cells are same color exclude that one from appearing in randomizer
+					if(boardVertical > i + 2 && board[i+1][j] != emptyIndex && board[i+1][j] == board[i+2][j])//if up 2 cells are same color exclude that one from appearing in randomizer
 						colorsBuffer[colorLengthBuffer++] = board[i+1][j]; //append the excluded color to an array
 
 					//if left 2 cells and up 2 cells are paired with same colors or left 1 and right 1 cell are same colors but left and up colors are not same
-					if((j - 2 >= 0 && board[i][j-2] == board[i][j-1] || (j-1>=0 && boardHorizontal>j+1) && board[i][j-1] == board[i][j+1]) && 
-					  !(colorLengthBuffer >= 1 && colorsBuffer[colorLengthBuffer - 1] == board[i][j-1])){
+					if((j - 2 >= 0 && board[i][j-2] != emptyIndex && board[i][j-2] == board[i][j-1] || (j-1>=0 && boardHorizontal>j+1) && board[i][j-1] != emptyIndex && board[i][j-1] == board[i][j+1]) 
+						&& !(colorLengthBuffer >= 1 && colorsBuffer[colorLengthBuffer - 1] == board[i][j-1])){
 						colorsBuffer[colorLengthBuffer++] = board[i][j-1];
 					}
-					//right 2 cells
+					//if the top and left are same colors or there is no blocks at the left
+					else if(boardHorizontal > j + 2 && board[i][j+1] != emptyIndex && board[i][j+1] == board[i][j+2] && !(colorLengthBuffer >= 1 && colorsBuffer[colorLengthBuffer - 1] == board[i][j+1])){
+						colorsBuffer[colorLengthBuffer++] = board[i][j+1];
+					}
 					
 					if(colorLengthBuffer > 0) //if there is an excluded color call the picker method
 						board[i][j] = ColorPickerExcept(Arrays.copyOfRange(colorsBuffer, 0, colorLengthBuffer));
@@ -307,14 +311,14 @@ public class Match3{
 		for(int i = minColumn; i<=maxColumn; i++){ //loop through the whole board
 			for(int j = boardVertical-1; j>=0; j--){
 				if(lastIndex == -1){
-					if(board[j][i] == -1){
+					if(board[j][i] == emptyIndex){
 						lastIndex = j;
 					}
 				}
 				else{
-					if(board[j][i] != -1){
+					if(board[j][i] != emptyIndex){
 						board[lastIndex--][i] = board[j][i];
-						board[j][i] = -1;	
+						board[j][i] = emptyIndex;	
 					}
 				}
 			}
@@ -334,7 +338,7 @@ public class Match3{
 			counter = 1;
 		
 			for(int j = 1; j<boardHorizontal; j++){
-				if(board[i][j-1] == board[i][j] && board[i][j] != -1)
+				if(board[i][j-1] == board[i][j] && board[i][j] != emptyIndex)
 					counter++;
 				else	
 					counter = 1;
@@ -368,7 +372,7 @@ public class Match3{
 			counter = 1;
 		
 			for(int j = 1; j<boardVertical; j++){
-				if(board[j-1][i] == board[j][i] && board[j][i] != -1)
+				if(board[j-1][i] == board[j][i] && board[j][i] != emptyIndex)
 					counter++;
 				else	
 					counter = 1;
@@ -414,7 +418,7 @@ public class Match3{
 			for(int j = 0; j<boardHorizontal; j++){
 				if(boardBuffer[i][j] != 0){
 					boardBuffer[i][j] = 0;
-					board[i][j] = -1; 		  //delete the char
+					board[i][j] = emptyIndex; 		  //delete the char
 				}
 			}
 		}
