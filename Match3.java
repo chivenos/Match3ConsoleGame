@@ -2,14 +2,14 @@ import java.util.Scanner;
 import java.util.Random;
 import java.util.Arrays;
 
-public class Match3{
+public class Hw1{
 		final static Scanner sc = new Scanner(System.in);
 		final static Random rand = new Random();
 		final static char[] colors = new char[]{'R', 'G', 'B', ' '};
 		final static String[] colorNames = new String[]{"red", "green", "blue"};
 		final static int colorCount = colors.length - 1;
 		final static int emptyIndex = colorCount;
-		final static int scoreMultiplier = 5; //effects the game difficulty
+		final static int scoreMultiplier = 50; //effects the game difficulty
 		
 		static int[][] board;
 		static int[][] boardBuffer;
@@ -48,125 +48,139 @@ public class Match3{
 			}
 		}
 		
-		//inputs
-		GatherBoardSize();
-		while(boardSize[0] < colorCount || boardSize[1] < colorCount){
-			GatherBoardSize();
-		}
-		System.out.println("Good luck!");
-		
-		board = new int[boardSize[0]][boardSize[1]];
-		boardBuffer = new int[boardSize[0]][boardSize[1]];
-		boardVertical = board.length;
-		boardHorizontal = board[0].length;
-		
-		ShuffleBoard();
-		ReShuffleIfNoMatch(); //reshuffle the board if there is no possible match
-		
-		//choose game mode
-		gameMode = rand.nextInt(2);
-		if(gameMode == 0){
-			moveCount = 15; //set the move count
-			System.out.println("You have to collect 200 points in 15 moves!");
-		}
-		else if(gameMode == 1){
-			moveCount = 20; //set the move count
-			System.out.println("You have to collect 100 points for each color in 20 moves!");
-		}
-		
-		PrintBoard();
-		
-		//game loop
 		while(gameRunning){
 			//inputs
-			System.out.println("Enter the cell:");
-			inputCell[0] = sc.nextInt(); 
-			inputCell[1] = sc.nextInt(); 
+			GatherBoardSize();
+			while(boardSize[0] < colorCount || boardSize[1] < colorCount){
+				GatherBoardSize();
+			}
+			System.out.println("Good luck!");
 			
-			blankColumns[0] = boardHorizontal;
-			blankColumns[1] = 0;
+			board = new int[boardSize[0]][boardSize[1]];
+			boardBuffer = new int[boardSize[0]][boardSize[1]];
+			boardVertical = board.length;
+			boardHorizontal = board[0].length;
 			
-			//invalid input
-			if(inputCell[0] <= 0 || inputCell[0] > board.length || inputCell[1] <= 0 || inputCell[1] > board[0].length)
-				continue;
+			ShuffleBoard();
+			ReShuffleIfNoMatch(); //reshuffle the board if there is no possible match
 			
-			System.out.println("Enter the direction:");
-			input = sc.next();
+			//choose game mode
+			gameMode = rand.nextInt(2);
+			if(gameMode == 0){
+				moveCount = 15; //set the move count
+				System.out.println("You have to collect 200 points in 15 moves!");
+			}
+			else if(gameMode == 1){
+				moveCount = 20; //set the move count
+				System.out.println("You have to collect 100 points for each color in 20 moves!");
+			}
 			
-			//base cell
-			inputCell[0]--;
-			inputCell[1]--;
-			lastPos[0] = inputCell[0];
-			lastPos[1] = inputCell[1];
+			PrintBoard();
 			
-			//calculate the direction
-			switch(input){
-				case "up":
-					lastPos[0] -= 1;
-					break;
-				case "down":
-					lastPos[0] += 1;
-					break;
-				case "left":
-					lastPos[1] -= 1;
-					break;
-				case "right":
-					lastPos[1] += 1;
-					break;
-				default: //invalid input
+			//game loop
+			while(gameRunning){
+				//inputs
+				System.out.println("Enter the cell:");
+				inputCell[0] = sc.nextInt(); 
+				inputCell[1] = sc.nextInt(); 
+				
+				blankColumns[0] = boardHorizontal;
+				blankColumns[1] = 0;
+				
+				//invalid input
+				if(inputCell[0] <= 0 || inputCell[0] > board.length || inputCell[1] <= 0 || inputCell[1] > board[0].length)
 					continue;
-			}
-			
-			//invalid move			
-			if(lastPos[0] < 0 || lastPos[0] > board.length - 1 || lastPos[1] < 0 || lastPos[1] > board[0].length - 1){
-				System.out.println("Invalid move!");
-				PrintBoard();
-				continue;	
-			}
-			
-			//swap the cells
-			entityBuffer = board[inputCell[0]][inputCell[1]];
-			board[inputCell[0]][inputCell[1]] = board[lastPos[0]][lastPos[1]];
-			board[lastPos[0]][lastPos[1]] = entityBuffer;
-			
-			repeat = CheckMatchReplace();
-			
-			//check, if there is no match reswap to the old position
-			if(!repeat){
+				
+				System.out.println("Enter the direction:");
+				input = sc.next();
+				
+				//base cell
+				inputCell[0]--;
+				inputCell[1]--;
+				lastPos[0] = inputCell[0];
+				lastPos[1] = inputCell[1];
+				
+				//calculate the direction
+				switch(input){
+					case "up":
+						lastPos[0] -= 1;
+						break;
+					case "down":
+						lastPos[0] += 1;
+						break;
+					case "left":
+						lastPos[1] -= 1;
+						break;
+					case "right":
+						lastPos[1] += 1;
+						break;
+					default: //invalid input
+						continue;
+				}
+				
+				//invalid move			
+				if(lastPos[0] < 0 || lastPos[0] > board.length - 1 || lastPos[1] < 0 || lastPos[1] > board[0].length - 1){
+					System.out.println("Invalid move!");
+					PrintBoard();
+					continue;	
+				}
+				
+				//swap the cells
 				entityBuffer = board[inputCell[0]][inputCell[1]];
 				board[inputCell[0]][inputCell[1]] = board[lastPos[0]][lastPos[1]];
 				board[lastPos[0]][lastPos[1]] = entityBuffer;
-			}
-			//print the board and the score if the move is valid, else ask for inputs again
-			else{
-				while(CheckMatchReplace()){} //if the repeat variable equals to true, repeat the method till it returns false because there may be another matches after we moved cells down
-				repeat = false;
-				moveCount--;
 				
-				//check if game ends
-				gameStatBuffer = CheckIfGameEnded();
-				if(gameStatBuffer == 1){
-					PrintScore();
-					System.out.println("Unfortunately, you lost the game.");
-					gameRunning = false;
-					break;
-				}
-				else if(gameStatBuffer == 2){
-					PrintScore();
-					System.out.println("Congratulations, you won the game!");
-					gameRunning = false;
-					break;
-				}
+				repeat = CheckMatchReplace();
 				
-				//PrintBoard(); //DEBUGGING!!!!
-				PrintScore();
-				GenerateNewCells(); 	//generates new cells to the just blanked cells
-				ReShuffleIfNoMatch();	//reshuffle the board if there is no possible match
-				PrintBoard();
+				//check, if there is no match reswap to the old position
+				if(!repeat){
+					entityBuffer = board[inputCell[0]][inputCell[1]];
+					board[inputCell[0]][inputCell[1]] = board[lastPos[0]][lastPos[1]];
+					board[lastPos[0]][lastPos[1]] = entityBuffer;
+				}
+				//print the board and the score if the move is valid, else ask for inputs again
+				else{
+					while(CheckMatchReplace()){} //if the repeat variable equals to true, repeat the method till it returns false because there may be another matches after we moved cells down
+					repeat = false;
+					moveCount--;
+					
+					//check if game ends
+					gameStatBuffer = CheckIfGameEnded();
+					if(gameStatBuffer == 1){
+						PrintScore();
+						System.out.println("Unfortunately, you lost the game.");
+						gameRunning = false;
+						break;
+					}
+					else if(gameStatBuffer == 2){
+						PrintScore();
+						System.out.println("Congratulations, you won the game!");
+						System.out.println("Press 'y' to restart, 'n' to quit the game.");
+						input = sc.next();
+						
+						if(input.equals("n"))
+							gameRunning = false;
+						else
+							ResetScores();
+						
+						break;
+					}
+					
+					//PrintBoard(); //DEBUGGING!!!!
+					PrintScore();
+					GenerateNewCells(); 	//generates new cells to the just blanked cells
+					ReShuffleIfNoMatch();	//reshuffle the board if there is no possible match
+					PrintBoard();
+				}
 			}
 		}
 		
 		sc.close();
+	}
+	
+	private static void ResetScores(){
+			for(int i = 0; i<colorCount; i++)
+				scores[i] = 0;
 	}
 	
 	private static int CheckIfGameEnded(){ //0 not ended, 1 lost, 2 won
@@ -294,7 +308,7 @@ public class Match3{
 				case 1:		//Mode 1: collect 100 points for each color in 20 moves
 					String output = "You have collected ";
 					for(int i = 0; i<colorCount; i++){ //calculate the total score
-						output += Colors.GetColor(i) + scores[i] + Colors.RESET + " points for " + colorNames[i];
+						output += Color.GetColor(i) + scores[i] + Color.RESET + " points for " + colorNames[i];
 						if(i + 1 != colorCount)
 							output += ", ";
 					}
@@ -429,7 +443,7 @@ public class Match3{
 		
 		for(int i = 0; i<boardVertical; i++){ //loop through the whole board
 			for(int j = 0; j<boardHorizontal; j++){
-				System.out.print("|" + Colors.GetColor(board[i][j]) + colors[board[i][j]] + Colors.RESET); //print the board with colors
+				System.out.print("|" + Color.GetColor(board[i][j]) + colors[board[i][j]] + Color.RESET); //print the board with colors
 			}
 			
 			System.out.println("|");
@@ -482,8 +496,8 @@ public class Match3{
 	}
 }
 
-class Colors{ //provides colors
-	private Colors(){}
+class Color{ //provides colors
+	private Color(){}
 	
 	static String RED = "\u001B[31m";
 	static String GREEN = "\u001B[32m";
